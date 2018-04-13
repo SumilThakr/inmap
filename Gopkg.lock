@@ -63,20 +63,30 @@
 
 [[projects]]
   branch = "master"
-  name = "github.com/ctessum/aep"
-  packages = ["."]
-  revision = "c5677dc9ccbdbff6b936c1fc7f03327a204c3bde"
-
-[[projects]]
-  branch = "master"
   name = "github.com/ctessum/atmos"
-  packages = ["acm2","advect","emep","evalstats","plumerise","seinfeld","wesely1989"]
+  packages = [
+    "acm2",
+    "advect",
+    "emep",
+    "evalstats",
+    "plumerise",
+    "seinfeld",
+    "wesely1989"
+  ]
   revision = "cba69f7ca647e4802a2fc348281d6ab269806a7a"
 
 [[projects]]
   branch = "master"
   name = "github.com/ctessum/geom"
-  packages = [".","carto","encoding/geojson","encoding/shp","index/rtree","op","proj"]
+  packages = [
+    ".",
+    "carto",
+    "encoding/geojson",
+    "encoding/shp",
+    "index/rtree",
+    "op",
+    "proj"
+  ]
   revision = "1cd0f1efc691950863e98ac8da882f497d5ce287"
 
 [[projects]]
@@ -100,13 +110,23 @@
 [[projects]]
   branch = "master"
   name = "github.com/ctessum/unit"
-  packages = [".","badunit"]
+  packages = [
+    ".",
+    "badunit"
+  ]
   revision = "755774ac2fcbe68f090798b4cdc47c5cd056b1f5"
 
 [[projects]]
   branch = "master"
   name = "github.com/dsnet/compress"
-  packages = [".","bzip2","bzip2/internal/sais","internal","internal/errors","internal/prefix"]
+  packages = [
+    ".",
+    "bzip2",
+    "bzip2/internal/sais",
+    "internal",
+    "internal/errors",
+    "internal/prefix"
+  ]
   revision = "cc9eb1d7ad760af14e8f918698f745e80377af4f"
 
 [[projects]]
@@ -118,7 +138,11 @@
 [[projects]]
   branch = "master"
   name = "github.com/golang/freetype"
-  packages = [".","raster","truetype"]
+  packages = [
+    ".",
+    "raster",
+    "truetype"
+  ]
   revision = "e2365dfdc4a05e4b8299a783240d4a7d5a65d4e4"
 
 [[projects]]
@@ -142,7 +166,18 @@
 [[projects]]
   branch = "master"
   name = "github.com/hashicorp/hcl"
-  packages = [".","hcl/ast","hcl/parser","hcl/printer","hcl/scanner","hcl/strconv","hcl/token","json/parser","json/scanner","json/token"]
+  packages = [
+    ".",
+    "hcl/ast",
+    "hcl/parser",
+    "hcl/printer",
+    "hcl/scanner",
+    "hcl/strconv",
+    "hcl/token",
+    "json/parser",
+    "json/scanner",
+    "json/token"
+  ]
   revision = "23c074d0eceb2b8a5bfdbb271ab780cde70f05a8"
 
 [[projects]]
@@ -165,8 +200,24 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/kr/pretty"
+  packages = ["."]
+  revision = "cfb55aafdaf3ec08f0db22699ab822c50091b1c4"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/kr/text"
+  packages = ["."]
+  revision = "7cafcd837844e784b526369c9bce262804aebc60"
+
+[[projects]]
+  branch = "master"
   name = "github.com/llgcode/draw2d"
-  packages = [".","draw2dbase","draw2dimg"]
+  packages = [
+    ".",
+    "draw2dbase",
+    "draw2dimg"
+  ]
   revision = "dcbfbe505d35de8166ccfc47ff9e4bb020473e18"
 
 [[projects]]
@@ -200,6 +251,12 @@
   version = "v1.0.1"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/remogatto/ftpget"
+  packages = ["."]
+  revision = "5c3c8286a3b00a13d6e88f181504db722e419519"
+
+[[projects]]
   name = "github.com/russross/blackfriday"
   packages = ["."]
   revision = "4048872b16cc0fc2c5fd9eacf0ed2c2fedaa0c8c"
@@ -213,7 +270,10 @@
 
 [[projects]]
   name = "github.com/spf13/afero"
-  packages = [".","mem"]
+  packages = [
+    ".",
+    "mem"
+  ]
   revision = "8d919cbe7e2627e417f3e45c3c0e489a5b7e2536"
   version = "v1.0.0"
 
@@ -226,7 +286,10 @@
 [[projects]]
   branch = "master"
   name = "github.com/spf13/cobra"
-  packages = [".","doc"]
+  packages = [
+    ".",
+    "doc"
+  ]
   revision = "b95ab734e27d33e0d8fbabf71ca990568d4e2020"
 
 [[projects]]
@@ -248,15 +311,33 @@
   revision = "aafc9e6bc7b7bb53ddaa75a5ef49a17d6e654be5"
 
 [[projects]]
+  name = "github.com/tealeg/xlsx"
+  packages = ["."]
+  revision = "8be35264fa75a1bbe954ce51eba04f273e2c59e5"
+  version = "v1.0.3"
+
+[[projects]]
   name = "github.com/ulikunitz/xz"
-  packages = [".","internal/hash","internal/xlog","lzma"]
+  packages = [
+    ".",
+    "internal/hash",
+    "internal/xlog",
+    "lzma"
+  ]
   revision = "0c6b41e72360850ca4f98dc341fd999726ea007f"
   version = "v0.5.4"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/image"
-  packages = ["draw","font","math/f64","math/fixed","tiff","tiff/lzw"]
+  packages = [
+    "draw",
+    "font",
+    "math/f64",
+    "math/fixed",
+    "tiff",
+    "tiff/lzw"
+  ]
   revision = "f7e31b4ea2e3413ab91b4e7d2dc83e5f8d19a44c"
 
 [[projects]]
@@ -274,19 +355,51 @@
 [[projects]]
   branch = "master"
   name = "golang.org/x/text"
-  packages = ["internal/gen","internal/triegen","internal/ucd","transform","unicode/cldr","unicode/norm"]
+  packages = [
+    "internal/gen",
+    "internal/triegen",
+    "internal/ucd",
+    "transform",
+    "unicode/cldr",
+    "unicode/norm"
+  ]
   revision = "75cc3cad82b5f47d3fb229ddda8c5167da14f294"
 
 [[projects]]
   branch = "master"
   name = "gonum.org/v1/gonum"
-  packages = ["blas","blas/blas64","blas/gonum","floats","internal/asm/c128","internal/asm/f32","internal/asm/f64","internal/math32","lapack","lapack/gonum","lapack/lapack64","mat"]
+  packages = [
+    "blas",
+    "blas/blas64",
+    "blas/gonum",
+    "floats",
+    "internal/asm/c128",
+    "internal/asm/f32",
+    "internal/asm/f64",
+    "internal/math32",
+    "lapack",
+    "lapack/gonum",
+    "lapack/lapack64",
+    "mat"
+  ]
   revision = "ce73cefcda434183888c40895ea2fa306203906a"
 
 [[projects]]
   branch = "master"
   name = "gonum.org/v1/plot"
-  packages = [".","palette","plotter","tools/bezier","vg","vg/draw","vg/fonts","vg/vgeps","vg/vgimg","vg/vgpdf","vg/vgsvg"]
+  packages = [
+    ".",
+    "palette",
+    "plotter",
+    "tools/bezier",
+    "vg",
+    "vg/draw",
+    "vg/fonts",
+    "vg/vgeps",
+    "vg/vgimg",
+    "vg/vgpdf",
+    "vg/vgsvg"
+  ]
   revision = "50336e281717e5f1685e3c611828dfb42c82cf66"
 
 [[projects]]
@@ -298,6 +411,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "4021d08f859234d87c5ab56beb593bf2ba27e0361ed2dabc63dbf23607f8e72f"
+  inputs-digest = "60600470cd7de29b7461d9cd8355973efc6c06b4fa868e412803592a540cde4e"
   solver-name = "gps-cdcl"
   solver-version = 1
