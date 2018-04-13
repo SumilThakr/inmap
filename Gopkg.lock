@@ -91,6 +91,15 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/ctessum/go-leaflet"
+  packages = [
+    ".",
+    "plugin/glify"
+  ]
+  revision = "2f9e4c38fb5e008f72c7d21c3621cc825d5c4347"
+
+[[projects]]
+  branch = "master"
   name = "github.com/ctessum/gobra"
   packages = ["."]
   revision = "c4487115d72c87acf0eb24c90717cc07d615b836"
@@ -162,6 +171,21 @@
   name = "github.com/gonum/internal"
   packages = ["asm/f64"]
   revision = "e57e4534cf9b3b00ef6c0175f59d8d2d34f60914"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/gopherjs/gopherjs"
+  packages = ["js"]
+  revision = "558a9132744c22476178edf3126fd35a9754f565"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/gopherjs/websocket"
+  packages = [
+    ".",
+    "websocketjs"
+  ]
+  revision = "87ee47603f137e7f8419765b3621b3c36e715a08"
 
 [[projects]]
   branch = "master"
@@ -269,6 +293,12 @@
   revision = "75fb7ed4208cf72d323d7d02fd1a5964a7a9073c"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/spatialmodel/epi"
+  packages = ["."]
+  revision = "11aca7c5f89419c31e9d9ee71de6416fc21526b4"
+
+[[projects]]
   name = "github.com/spf13/afero"
   packages = [
     ".",
@@ -343,7 +373,10 @@
 [[projects]]
   branch = "master"
   name = "golang.org/x/net"
-  packages = ["context"]
+  packages = [
+    "context",
+    "websocket"
+  ]
   revision = "cd69bc3fc700721b709c3a59e16e24c67b58f6ff"
 
 [[projects]]
@@ -390,6 +423,7 @@
   packages = [
     ".",
     "palette",
+    "palette/moreland",
     "plotter",
     "tools/bezier",
     "vg",
@@ -408,9 +442,15 @@
   packages = ["."]
   revision = "eb3733d160e74a9c7e442f435eb3bea458e1d19f"
 
+[[projects]]
+  branch = "master"
+  name = "honnef.co/go/js/dom"
+  packages = ["."]
+  revision = "6da835bec70f84cd4f0c0b8a7239a9260b6bc37f"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "60600470cd7de29b7461d9cd8355973efc6c06b4fa868e412803592a540cde4e"
+  inputs-digest = "7ef2ea957d8ba4c5c900499adcfcdbfdb4086966c5b8a69a2c1425d8b2c24679"
   solver-name = "gps-cdcl"
   solver-version = 1
