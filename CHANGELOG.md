@@ -1,3 +1,7 @@
+# Release 1.5 (?)
+* Add the ability to download input files from the web
+* Add emissions processors
+
 # Release 1.4.1 (2018-1-10)
 * Configuration and GUI bug fixes
 
