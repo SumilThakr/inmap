@@ -216,7 +216,7 @@ func init() {
 			name: "VarGrid.CensusFile",
 			usage: `
               VarGrid.CensusFile is the path to the shapefile holding population information.`,
-			defaultVal: "${GOPATH}/src/github.com/spatialmodel/inmap/inmap/testdata/testPopulation.shp",
+			defaultVal: "${GOPATH}/src/github.com/spatialmodel/inmap/cmd/inmap/testdata/testPopulation.shp",
 			flagsets:   []*pflag.FlagSet{runCmd.PersistentFlags(), gridCmd.Flags(), srCmd.Flags(), workerCmd.Flags()},
 		},
 		{
@@ -243,7 +243,7 @@ func init() {
 			usage: `
               VarGrid.MortalityRateFile is the path to the shapefile containing baseline
               mortality rate data.`,
-			defaultVal: "${GOPATH}/src/github.com/spatialmodel/inmap/inmap/testdata/testMortalityRate.shp",
+			defaultVal: "${GOPATH}/src/github.com/spatialmodel/inmap/cmd/inmap/testdata/testMortalityRate.shp",
 			flagsets:   []*pflag.FlagSet{runCmd.PersistentFlags(), gridCmd.Flags(), srCmd.Flags(), workerCmd.Flags()},
 		},
 		{
@@ -269,7 +269,7 @@ func init() {
 			usage: `
               InMAPData is the path to location of baseline meteorology and pollutant data.
               The path can include environment variables.`,
-			defaultVal: "${GOPATH}/src/github.com/spatialmodel/inmap/inmap/testdata/testInMAPInputData.ncf",
+			defaultVal: "${GOPATH}/src/github.com/spatialmodel/inmap/cmd/inmap/testdata/testInMAPInputData.ncf",
 			flagsets:   []*pflag.FlagSet{runCmd.PersistentFlags(), gridCmd.Flags(), srCmd.Flags(), workerCmd.Flags(), preprocCmd.Flags()},
 		},
 		{
@@ -278,7 +278,7 @@ func init() {
               VariableGridData is the path to the location of the variable-resolution gridded
               InMAP data, or the location where it should be created if it doesn't already
               exist. The path can include environment variables.`,
-			defaultVal: "${GOPATH}/src/github.com/spatialmodel/inmap/inmap/testdata/inmapVarGrid.gob",
+			defaultVal: "${GOPATH}/src/github.com/spatialmodel/inmap/cmd/inmap/testdata/inmapVarGrid.gob",
 			flagsets:   []*pflag.FlagSet{runCmd.PersistentFlags(), gridCmd.Flags(), srCmd.Flags(), workerCmd.Flags()},
 		},
 		{
@@ -292,7 +292,7 @@ func init() {
               to the InMAP computational grid, but the mapping projection of the
               shapefile must be the same as the projection InMAP uses.
               Can include environment variables.`,
-			defaultVal: []string{"${GOPATH}/src/github.com/spatialmodel/inmap/inmap/testdata/testEmis.shp"},
+			defaultVal: []string{"${GOPATH}/src/github.com/spatialmodel/inmap/cmd/inmap/testdata/testEmis.shp"},
 			flagsets:   []*pflag.FlagSet{runCmd.PersistentFlags(), gridCmd.Flags(), srCmd.Flags(), workerCmd.Flags()},
 		},
 		{
@@ -360,7 +360,7 @@ func init() {
 			usage: `
               SR.OutputFile is the path where the output file is or should be created
                when creating a source-receptor matrix. It can contain environment variables.`,
-			defaultVal: "${GOPATH}/src/github.com/spatialmodel/inmap/inmap/testdata/output_${InMAPRunType}.shp",
+			defaultVal: "${GOPATH}/src/github.com/spatialmodel/inmap/cmd/inmap/testdata/output_${InMAPRunType}.shp",
 			flagsets:   []*pflag.FlagSet{srCmd.Flags(), srPredictCmd.Flags()},
 		},
 		{
@@ -377,7 +377,7 @@ func init() {
 			usage: `
               Preproc.WRFChem.WRFOut is the location of WRF-Chem output files.
               [DATE] should be used as a wild card for the simulation date.`,
-			defaultVal: "${GOPATH}/src/github.com/spatialmodel/inmap/inmap/testdata/preproc/wrfout_d01_[DATE]",
+			defaultVal: "${GOPATH}/src/github.com/spatialmodel/inmap/cmd/inmap/testdata/preproc/wrfout_d01_[DATE]",
 			flagsets:   []*pflag.FlagSet{preprocCmd.Flags()},
 		},
 		{
@@ -385,7 +385,7 @@ func init() {
 			usage: `
               Preproc.GEOSChem.GEOSA1 is the location of the GEOS 1-hour time average files.
               [DATE] should be used as a wild card for the simulation date.`,
-			defaultVal: "${GOPATH}/src/github.com/spatialmodel/inmap/inmap/testdata/preproc/GEOSFP.[DATE].A1.2x25.nc",
+			defaultVal: "${GOPATH}/src/github.com/spatialmodel/inmap/cmd/inmap/testdata/preproc/GEOSFP.[DATE].A1.2x25.nc",
 			flagsets:   []*pflag.FlagSet{preprocCmd.Flags()},
 		},
 		{
@@ -394,7 +394,7 @@ func init() {
               Preproc.GEOSChem.GEOSA3Cld is the location of the GEOS 3-hour average cloud
               parameter files. [DATE] should be used as a wild card for
               the simulation date.`,
-			defaultVal: "${GOPATH}/src/github.com/spatialmodel/inmap/inmap/testdata/preproc/GEOSFP.[DATE].A3cld.2x25.nc",
+			defaultVal: "${GOPATH}/src/github.com/spatialmodel/inmap/cmd/inmap/testdata/preproc/GEOSFP.[DATE].A3cld.2x25.nc",
 			flagsets:   []*pflag.FlagSet{preprocCmd.Flags()},
 		},
 		{
@@ -403,7 +403,7 @@ func init() {
               Preproc.GEOSChem.GEOSA3Dyn is the location of the GEOS 3-hour average dynamical
               parameter files. [DATE] should be used as a wild card for
               the simulation date.`,
-			defaultVal: "${GOPATH}/src/github.com/spatialmodel/inmap/inmap/testdata/preproc/GEOSFP.[DATE].A3dyn.2x25.nc",
+			defaultVal: "${GOPATH}/src/github.com/spatialmodel/inmap/cmd/inmap/testdata/preproc/GEOSFP.[DATE].A3dyn.2x25.nc",
 			flagsets:   []*pflag.FlagSet{preprocCmd.Flags()},
 		},
 		{
@@ -412,7 +412,7 @@ func init() {
               Preproc.GEOSChem.GEOSI3 is the location of the GEOS 3-hour instantaneous parameter
               files. [DATE] should be used as a wild card for
               the simulation date.`,
-			defaultVal: "${GOPATH}/src/github.com/spatialmodel/inmap/inmap/testdata/preproc/GEOSFP.[DATE].I3.2x25.nc",
+			defaultVal: "${GOPATH}/src/github.com/spatialmodel/inmap/cmd/inmap/testdata/preproc/GEOSFP.[DATE].I3.2x25.nc",
 			flagsets:   []*pflag.FlagSet{preprocCmd.Flags()},
 		},
 		{
@@ -421,7 +421,7 @@ func init() {
               Preproc.GEOSChem.GEOSA3MstE is the location of the GEOS 3-hour average moist parameters
               on level edges files. [DATE] should be used as a wild card for
               the simulation date.`,
-			defaultVal: "${GOPATH}/src/github.com/spatialmodel/inmap/inmap/testdata/preproc/GEOSFP.[DATE].A3mstE.2x25.nc",
+			defaultVal: "${GOPATH}/src/github.com/spatialmodel/inmap/cmd/inmap/testdata/preproc/GEOSFP.[DATE].A3mstE.2x25.nc",
 			flagsets:   []*pflag.FlagSet{preprocCmd.Flags()},
 		},
 		{
@@ -438,7 +438,7 @@ func init() {
 			usage: `
               Preproc.GEOSChem.GEOSChem is the location of GEOS-Chem output files.
               [DATE] should be used as a wild card for the simulation date.`,
-			defaultVal: "${GOPATH}/src/github.com/spatialmodel/inmap/inmap/testdata/preproc/gc_output.[DATE].nc",
+			defaultVal: "${GOPATH}/src/github.com/spatialmodel/inmap/cmd/inmap/testdata/preproc/gc_output.[DATE].nc",
 			flagsets:   []*pflag.FlagSet{preprocCmd.Flags()},
 		},
 		{
@@ -447,7 +447,7 @@ func init() {
               Preproc.GEOSChem.VegTypeGlobal is the location of the GEOS-Chem vegtype.global file,
               which is described here:
               http://wiki.seas.harvard.edu/geos-chem/index.php/Olson_land_map#Structure_of_the_vegtype.global_file`,
-			defaultVal: "${GOPATH}/src/github.com/spatialmodel/inmap/inmap/testdata/preproc/vegtype.global.txt",
+			defaultVal: "${GOPATH}/src/github.com/spatialmodel/inmap/cmd/inmap/testdata/preproc/vegtype.global.txt",
 			flagsets:   []*pflag.FlagSet{preprocCmd.Flags()},
 		},
 		{

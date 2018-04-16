@@ -21,7 +21,7 @@ func helperLog(t *testing.T) chan string {
 func fileServer(t *testing.T) *http.Server {
 	srv := &http.Server{
 		Addr:    ":7777",
-		Handler: http.FileServer(http.Dir("../inmap/testdata/")),
+		Handler: http.FileServer(http.Dir("../cmd/inmap/testdata/")),
 	}
 
 	go func() {
