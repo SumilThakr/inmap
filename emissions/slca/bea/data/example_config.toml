@@ -1,16 +1,16 @@
-SpatialRefFile = "${GOPATH}/src/bitbucket.org/ctessum/slca/bea/data/SCC_codes.xlsx"
+SpatialRefFile = "${GOPATH}/src/github.com/spatialmodel/inmap/emissions/slca/bea/data/SCC_codes.xlsx"
 
 [Config]
   Years = [2007, 2014]
   DetailYear = 2007
-  UseSummary = "${GOPATH}/src/bitbucket.org/ctessum/slca/bea/data/IOUse_Before_Redefinitions_PRO_1997-2015_Summary.xlsx"
-  UseDetail = "${GOPATH}/src/bitbucket.org/ctessum/slca/bea/data/IOUse_Before_Redefinitions_PRO_2007_Detail.xlsx"
-  ImportsSummary = "${GOPATH}/src/bitbucket.org/ctessum/slca/bea/data/ImportMatrices_Before_Redefinitions_SUM_1997-2016.xlsx"
-  ImportsDetail = "${GOPATH}/src/bitbucket.org/ctessum/slca/bea/data/ImportMatrices_Before_Redefinitions_DET_2007.xlsx"
-  TotalRequirementsSummary = "${GOPATH}/src/bitbucket.org/ctessum/slca/bea/data/IxC_TR_1997-2015_Summary.xlsx"
-  TotalRequirementsDetail =     "${GOPATH}/src/bitbucket.org/ctessum/slca/bea/data/IxC_TR_2007_Detail.xlsx"
-  DomesticRequirementsSummary = "${GOPATH}/src/bitbucket.org/ctessum/slca/bea/data/IxC_Domestic_1997-2015_Summary.xlsx"
-  DomesticRequirementsDetail =  "${GOPATH}/src/bitbucket.org/ctessum/slca/bea/data/IxC_Domestic_2007_Detail.xlsx"
+  UseSummary = "${GOPATH}/src/github.com/spatialmodel/inmap/emissions/slca/bea/data/IOUse_Before_Redefinitions_PRO_1997-2015_Summary.xlsx"
+  UseDetail = "${GOPATH}/src/github.com/spatialmodel/inmap/emissions/slca/bea/data/IOUse_Before_Redefinitions_PRO_2007_Detail.xlsx"
+  ImportsSummary = "${GOPATH}/src/github.com/spatialmodel/inmap/emissions/slca/bea/data/ImportMatrices_Before_Redefinitions_SUM_1997-2016.xlsx"
+  ImportsDetail = "${GOPATH}/src/github.com/spatialmodel/inmap/emissions/slca/bea/data/ImportMatrices_Before_Redefinitions_DET_2007.xlsx"
+  TotalRequirementsSummary = "${GOPATH}/src/github.com/spatialmodel/inmap/emissions/slca/bea/data/IxC_TR_1997-2015_Summary.xlsx"
+  TotalRequirementsDetail =     "${GOPATH}/src/github.com/spatialmodel/inmap/emissions/slca/bea/data/IxC_TR_2007_Detail.xlsx"
+  DomesticRequirementsSummary = "${GOPATH}/src/github.com/spatialmodel/inmap/emissions/slca/bea/data/IxC_Domestic_1997-2015_Summary.xlsx"
+  DomesticRequirementsDetail =  "${GOPATH}/src/github.com/spatialmodel/inmap/emissions/slca/bea/data/IxC_Domestic_2007_Detail.xlsx"
 
 [SpatialEIO]
   SpatialCache = "${SLCASpatialCache}/bea"
@@ -30,7 +30,7 @@ SpatialRefFile = "${GOPATH}/src/bitbucket.org/ctessum/slca/bea/data/SCC_codes.xl
   DefaultFIPS = "00000"
 
   FugitiveDustSectors = ["afdust", "othafdust"]
-  FugitiveDustAdjustment = "${GOPATH}/src/bitbucket.org/ctessum/slca/bea/data/dust_adjustment_isrm.csv"
+  FugitiveDustAdjustment = "${GOPATH}/src/github.com/spatialmodel/inmap/emissions/slca/bea/data/dust_adjustment_isrm.csv"
 
   AdditionalEmissionsShapefilesForEvaluation = [
     "${evaldata}/2005_emissions/bioFireEmis.shp",
