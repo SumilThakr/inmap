@@ -88,7 +88,7 @@ type Server struct {
 
 // NewServer creates a new EIO-LCA server.
 func NewServer() (*Server, error) {
-	f, err := os.Open(os.ExpandEnv("${GOPATH}/src/github.com/spatialmodel/inmap/emissions/slca/bea/data/example_config.toml"))
+	f, err := os.Open(os.ExpandEnv("${GOPATH}/src/github.com/spatialmodel/inmap/emissions/slca/bea/eioserve/config.toml"))
 	if err != nil {
 		return nil, err
 	}
