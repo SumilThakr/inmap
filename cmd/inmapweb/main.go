@@ -26,11 +26,12 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/spatialmodel/inmap/emissions/slca/bea/eioserve"
-	eioservepb "github.com/spatialmodel/inmap/emissions/slca/bea/eioserve/proto/eioservepb"
 
 	"google.golang.org/grpc/grpclog"
 	"google.golang.org/grpc/testdata"
 )
+
+const Address = ":10000"
 
 var logger *logrus.Logger
 
@@ -55,7 +56,7 @@ func main() {
 	}
 
 	srv := &http.Server{
-		Addr:              eioservepb.Address,
+		Addr:              Address,
 		Handler:           s,
 		ReadHeaderTimeout: 5 * time.Second,
 		//WriteTimeout: 5 * time.Second,
@@ -69,6 +70,6 @@ func main() {
 		},
 	}
 
-	logger.Infof("listening on https://%s\n", eioservepb.Address)
+	logger.Infof("listening on https://%s\n", Address)
 	logger.Fatal(srv.ListenAndServeTLS(testdata.Path("server1.pem"), testdata.Path("server1.key")))
 }
