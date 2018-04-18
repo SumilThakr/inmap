@@ -54,13 +54,15 @@ func main() {
 	if err != nil {
 		logger.WithError(err).Fatal("failed to create server")
 	}
+	s.Log = logger
 
 	srv := &http.Server{
 		Addr:              Address,
 		Handler:           s,
 		ReadHeaderTimeout: 5 * time.Second,
 		//WriteTimeout: 5 * time.Second,
-		IdleTimeout: 120 * time.Second,
+		IdleTimeout:    120 * time.Second,
+		MaxHeaderBytes: 1 << 20,
 		TLSConfig: &tls.Config{
 			PreferServerCipherSuites: true,
 			CurvePreferences: []tls.CurveID{
