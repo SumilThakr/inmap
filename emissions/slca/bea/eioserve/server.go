@@ -37,7 +37,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"runtime"
 	"sort"
 	"strings"
 	"sync"
@@ -613,20 +612,24 @@ func (s *Server) getGeometry(ctx context.Context, _ interface{}) (interface{}, e
 	return o, nil
 }
 
+// loadCacheOnce inititalizes a request cache.
+func loadCacheOnce(f requestcache.ProcessFunc, workers, memCacheSize int, cacheLoc string, marshal func(interface{}) ([]byte, error), unmarshal func([]byte) (interface{}, error)) *requestcache.Cache {
+	if cacheLoc == "" {
+		return requestcache.NewCache(f, workers, requestcache.Deduplicate(),
+			requestcache.Memory(memCacheSize))
+	} else if strings.HasPrefix(cacheLoc, "http") {
+		return requestcache.NewCache(f, workers, requestcache.Deduplicate(),
+			requestcache.Memory(memCacheSize), requestcache.HTTP(cacheLoc, unmarshal))
+	}
+	return requestcache.NewCache(f, workers, requestcache.Deduplicate(),
+		requestcache.Memory(memCacheSize), requestcache.Disk(cacheLoc, marshal, unmarshal))
+}
+
 // Geometry returns the InMAP grid geometry in the Google mercator projection.
 func (s *Server) Geometry(_ *eiopb.Selection, stream eiopb.EIOServe_GeometryServer) error {
 	s.geomCacheOnce.Do(func() {
-		if s.spatial.SpatialCache == "" {
-			s.geomCache = requestcache.NewCache(s.getGeometry, runtime.GOMAXPROCS(-1),
-				requestcache.Deduplicate(), requestcache.Memory(1))
-		} else {
-			s.geomCache = requestcache.NewCache(s.getGeometry, runtime.GOMAXPROCS(-1),
-				requestcache.Deduplicate(), requestcache.Memory(1),
-				requestcache.Disk(s.spatial.SpatialCache,
-					requestcache.MarshalGob, requestcache.UnmarshalGob,
-				),
-			)
-		}
+		s.geomCache = loadCacheOnce(s.getGeometry, 1, 1, s.spatial.SpatialCache,
+			requestcache.MarshalGob, requestcache.UnmarshalGob)
 	})
 	req := s.geomCache.NewRequest(context.Background(), struct{}{}, "geometry")
 	iface, err := req.Result()
@@ -656,15 +659,8 @@ func (s *Server) inverseArea() (*mat.VecDense, error) {
 		return area, nil
 	}
 	s.areaCacheOnce.Do(func() {
-		if s.spatial.SpatialCache == "" {
-			s.areaCache = requestcache.NewCache(f, runtime.GOMAXPROCS(-1),
-				requestcache.Deduplicate(), requestcache.Memory(1))
-		} else {
-			s.areaCache = requestcache.NewCache(f, runtime.GOMAXPROCS(-1),
-				requestcache.Deduplicate(), requestcache.Memory(1),
-				requestcache.Disk(s.spatial.SpatialCache, vectorMarshal, vectorUnmarshal),
-			)
-		}
+		s.areaCache = loadCacheOnce(f, 1, 1, s.spatial.SpatialCache,
+			vectorMarshal, vectorUnmarshal)
 	})
 	req := s.areaCache.NewRequest(context.Background(), nil, "grid_area")
 	iface, err := req.Result()
