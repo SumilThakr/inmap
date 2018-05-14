@@ -18,16 +18,12 @@ along with InMAP.  If not, see <http://www.gnu.org/licenses/>.*/
 package eioserve
 
 import (
-	"context"
-	"fmt"
+	"bytes"
+	"crypto/tls"
 	"net/http"
 	"testing"
 
 	eioservepb "github.com/spatialmodel/inmap/emissions/slca/bea/eioserve/proto/eioservepb"
-
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
-	"google.golang.org/grpc/testdata"
 )
 
 func TestServer_grpc(t *testing.T) {
@@ -37,26 +33,43 @@ func TestServer_grpc(t *testing.T) {
 	}
 
 	go func() {
-		http.ListenAndServeTLS(eioservepb.Address, testdata.Path("server1.pem"), testdata.Path("server1.key"), s)
+		http.ListenAndServeTLS(":10000", "test_data/cert.pem", "test_data/key.pem", s)
 	}()
 
 	t.Run("index", func(t *testing.T) {
-		r, err := http.Get("https://" + eioservepb.Address)
+		client := &http.Client{Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}}
+
+		res, err := client.Get("https://" + eioservepb.Address)
 		if err != nil {
 			t.Error(err)
 		}
-		fmt.Println(r)
+		defer res.Body.Close()
+
+		if res.StatusCode != http.StatusOK {
+			t.Errorf("Response code was %v; want 200", res.StatusCode)
+		}
+
+		expected := []byte("<!DOCTYPE html>")
+		body := make([]byte, len(expected))
+		_, err = res.Body.Read(body)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if bytes.Compare(expected, body) != 0 {
+			t.Errorf("Response body was '%s'; want '%s'", expected, body)
+		}
+
 	})
 
-	c, err := NewClient()
-	if err != nil {
-		t.Fatalf("failed to create client: %v", err)
-	}
+	/*c := eioclientpb.NewEIOServeClient("https://" + eioservepb.Address)
 
 	ctx := context.Background()
 
 	t.Run("DemandGroups", func(t *testing.T) {
-		r, err := c.DemandGroups(ctx, &eioservepb.Selection{
+		r, err := c.DemandGroups(ctx, &eioclientpb.Selection{
 			DemandGroup:      eioservepb.All,
 			DemandSector:     eioservepb.All,
 			ProductionGroup:  eioservepb.All,
@@ -68,19 +81,5 @@ func TestServer_grpc(t *testing.T) {
 			t.Error(err)
 		}
 		fmt.Println(r)
-	})
-
-}
-
-func NewClient() (eioservepb.EIOServeClient, error) {
-	creds, err := credentials.NewClientTLSFromFile(testdata.Path("ca.pem"), "x.test.youtube.com")
-	if err != nil {
-		return nil, err
-	}
-	opt := grpc.WithTransportCredentials(creds)
-	conn, err := grpc.Dial(eioservepb.Address, opt)
-	if err != nil {
-		return nil, err
-	}
-	return eioservepb.NewEIOServeClient(conn), nil
+	})*/
 }
