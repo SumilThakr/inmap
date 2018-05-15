@@ -19,11 +19,9 @@ package eioserve
 
 import (
 	"bytes"
-	"crypto/tls"
 	"net/http"
+	"net/http/httptest"
 	"testing"
-
-	eioservepb "github.com/spatialmodel/inmap/emissions/slca/bea/eioserve/proto/eioservepb"
 )
 
 func TestServer_grpc(t *testing.T) {
@@ -32,18 +30,15 @@ func TestServer_grpc(t *testing.T) {
 		t.Fatalf("failed to create server: %v", err)
 	}
 
-	go func() {
-		http.ListenAndServeTLS(":10000", "test_data/cert.pem", "test_data/key.pem", s)
-	}()
+	ts := httptest.NewTLSServer(s)
+	defer ts.Close()
 
 	t.Run("index", func(t *testing.T) {
-		client := &http.Client{Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-		}}
+		client := ts.Client()
 
-		res, err := client.Get("https://" + eioservepb.Address)
+		res, err := client.Get(ts.URL)
 		if err != nil {
-			t.Error(err)
+			t.Fatal(err)
 		}
 		defer res.Body.Close()
 
@@ -61,7 +56,6 @@ func TestServer_grpc(t *testing.T) {
 		if bytes.Compare(expected, body) != 0 {
 			t.Errorf("Response body was '%s'; want '%s'", expected, body)
 		}
-
 	})
 
 	/*c := eioclientpb.NewEIOServeClient("https://" + eioservepb.Address)
