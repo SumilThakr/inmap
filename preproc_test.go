@@ -82,7 +82,7 @@ func TestGEOSChemToInMAP(t *testing.T) {
 		true,
 		nil,
 		"3h",
-		"1h",
+		"3h",
 		true,
 	)
 	if err != nil {
@@ -121,7 +121,7 @@ func BenchmarkGEOSChemToInMAP(b *testing.B) {
 		true,
 		nil,
 		"3h",
-		"1h",
+		"3h",
 		true,
 	)
 	if err != nil {
