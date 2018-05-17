@@ -236,6 +236,7 @@ func NewGEOSChem(GEOSA1, GEOSA3Cld, GEOSA3Dyn, GEOSI3, GEOSA3MstE, GEOSApBp, GEO
 
 		dash:    d,
 		msgChan: msgChan,
+		noHour: noHour,
 	}
 
 	var err error
