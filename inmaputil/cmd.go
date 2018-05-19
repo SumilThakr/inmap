@@ -460,8 +460,7 @@ func init() {
 		{
 			name: "Preproc.GEOSChem.noChemHour",
 			usage: `
-              Preproc.GEOSChem.GEOSChem is the location of GEOS-Chem output files.
-              [DATE] should be used as a wild card for the simulation date.`,
+              If Preproc.GEOSChem.noChemHour is true, the GEOS-Chem output files do not contain a time dimension.`,
 			defaultVal: "${GOPATH}/src/github.com/spatialmodel/inmap/inmap/testdata/preproc/gc_output.[DATE].nc",
 			flagsets:   []*pflag.FlagSet{preprocCmd.Flags()},
 		},
