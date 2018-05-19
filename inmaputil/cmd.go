@@ -442,6 +442,30 @@ func init() {
 			flagsets:   []*pflag.FlagSet{preprocCmd.Flags()},
 		},
 		{
+			name: "Preproc.GEOSChem.chemFileStr",
+			usage: `
+              Preproc.GEOSChem.chemFileStr is the time interval of each file.
+              E.g. "3h" for 3 hours`,
+			defaultVal: "${GOPATH}/src/github.com/spatialmodel/inmap/inmap/testdata/preproc/gc_output.[DATE].nc",
+			flagsets:   []*pflag.FlagSet{preprocCmd.Flags()},
+		},
+		{
+			name: "Preproc.GEOSChem.chemRecordStr",
+			usage: `
+              Preproc.GEOSChem.chemRecordStr is the string specifying the time interval between different records.
+              E.g. "3h" for 3 hours`,
+			defaultVal: "${GOPATH}/src/github.com/spatialmodel/inmap/inmap/testdata/preproc/gc_output.[DATE].nc",
+			flagsets:   []*pflag.FlagSet{preprocCmd.Flags()},
+		},
+		{
+			name: "Preproc.GEOSChem.noChemHour",
+			usage: `
+              Preproc.GEOSChem.GEOSChem is the location of GEOS-Chem output files.
+              [DATE] should be used as a wild card for the simulation date.`,
+			defaultVal: "${GOPATH}/src/github.com/spatialmodel/inmap/inmap/testdata/preproc/gc_output.[DATE].nc",
+			flagsets:   []*pflag.FlagSet{preprocCmd.Flags()},
+		},
+		{
 			name: "Preproc.GEOSChem.VegTypeGlobal",
 			usage: `
               Preproc.GEOSChem.VegTypeGlobal is the location of the GEOS-Chem vegtype.global file,
@@ -744,6 +768,9 @@ file and saves the result for use in future InMAP simulations.`,
 			Cfg.GetFloat64("Preproc.CtmGridDx"),
 			Cfg.GetFloat64("Preproc.CtmGridDy"),
 			Cfg.GetBool("Preproc.GEOSChem.Dash"),
+			Cfg.GetString("Preproc.GEOSChem.recordDeltaStr"),
+			Cfg.GetString("Preproc.GEOSChem.fileDeltaStr"),
+			Cfg.GetBool("Preproc.GEOSChem.noChemHour"),
 		)
 	},
 	DisableAutoGenTag: true,

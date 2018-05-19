@@ -47,11 +47,11 @@ const (
 type GEOSChem struct {
 	aVOC, bVOC, aSOA, bSOA, nox, no, no2, pNO, sox, pS, nh3, pNH, totalPM25 map[string]float64
 
-	noHour bool
+	noChemHour bool
 
 	start, end time.Time
 
-	recordDeltaInterval, fileDeltaInterval time.Duration
+	chemRecordDeltaInterval, chemFileDeltaInterval time.Duration
 
 	recordDelta1h, recordDelta3h time.Duration
 	fileDelta24h, fileDelta3h    time.Duration
@@ -77,7 +77,7 @@ type GEOSChem struct {
 	msgChan chan string
 }
 
-// NewGEOSChem initializes a WRF-Chem preprocessor from the given
+// NewGEOSChem initializes a GEOS-Chem preprocessor from the given
 // configuration information.
 //
 // GEOSA1 is the location of the GEOS 1-hour time average files.
@@ -120,13 +120,15 @@ type GEOSChem struct {
 // If msgChan is not nil, status messages will be sent to it.
 //
 // chemRecordInterval is the time interval between different records in
-// the CTM output, as specified by the user.
+// the GEOS-Chem output. It is specified by the user as a string
+// (chemRecordStr), e.g. "3h" for 3 hours.
 //
-// chemFileInterval is the time interval of each file, as specified by
-// the user.
+// chemFileInterval is the time interval of each file. It is specified
+// as a string (chemFileStr), e.g. "3h" for 3 hours.
 //
-// If noHour is true, then the filename does not include the time in it.
-func NewGEOSChem(GEOSA1, GEOSA3Cld, GEOSA3Dyn, GEOSI3, GEOSA3MstE, GEOSApBp, GEOSChemOut, VegTypeGlobal, startDate, endDate string, dash bool, msgChan chan string, recordDeltaStr, fileDeltaStr string, noHour bool) (*GEOSChem, error) {
+// If noChemHour is true, then the GEOS-Chem output files will be
+// assumed to not contain a time dimension.
+func NewGEOSChem(GEOSA1, GEOSA3Cld, GEOSA3Dyn, GEOSI3, GEOSA3MstE, GEOSApBp, GEOSChemOut, VegTypeGlobal, startDate, endDate string, dash bool, chemRecordStr, chemFileStr string, noChemHour bool, msgChan chan string) (*GEOSChem, error) {
 	var d string
 	if dash {
 		d = "-"
@@ -234,9 +236,9 @@ func NewGEOSChem(GEOSA1, GEOSA3Cld, GEOSA3Dyn, GEOSI3, GEOSA3MstE, GEOSApBp, GEO
 		geosChem:      GEOSChemOut,
 		vegTypeGlobal: VegTypeGlobal,
 
-		dash:    d,
-		msgChan: msgChan,
-		noHour: noHour,
+		dash:       d,
+		msgChan:    msgChan,
+		noChemHour: noChemHour,
 	}
 
 	var err error
@@ -249,7 +251,7 @@ func NewGEOSChem(GEOSA1, GEOSA3Cld, GEOSA3Dyn, GEOSI3, GEOSA3MstE, GEOSApBp, GEO
 		return nil, fmt.Errorf("inmap: GEOS-Chem preprocessor end time: %v", err)
 	}
 
-	gc.recordDeltaInterval, err = time.ParseDuration(recordDeltaStr)
+	gc.chemRecordDeltaInterval, err = time.ParseDuration(chemRecordStr)
 	if err != nil {
 		return nil, fmt.Errorf("inmap: GEOS-Chem preprocessor recordDelta: %v", err)
 	}
@@ -261,7 +263,7 @@ func NewGEOSChem(GEOSA1, GEOSA3Cld, GEOSA3Dyn, GEOSI3, GEOSA3MstE, GEOSApBp, GEO
 	if err != nil {
 		return nil, fmt.Errorf("inmap: GEOS-Chem preprocessor recordDelta: %v", err)
 	}
-	gc.fileDeltaInterval, err = time.ParseDuration(fileDeltaStr)
+	gc.chemFileDeltaInterval, err = time.ParseDuration(chemFileStr)
 	if err != nil {
 		return nil, fmt.Errorf("inmap: GEOS-Chem preprocessor fileDelta: %v", err)
 	}
@@ -341,15 +343,11 @@ func (gc *GEOSChem) readI3(varName string) NextData {
 	return conv(nextDataNCF(gc.geosI3, geosFormat, varName, gc.start, gc.end, gc.recordDelta3h, gc.fileDelta24h, readNCF, gc.msgChan))
 }
 
-//func (gc *GEOSChem) readChem(varName string) NextData {
-//	return nextDataNCF(gc.geosChem, geosChemFormat, varName, gc.start, gc.end, gc.recordDelta3h, gc.fileDelta3h, readNCFNoHour, gc.msgChan)
-//}
-
 func (gc *GEOSChem) readChem(varName string) NextData {
-	if gc.noHour {
-		return nextDataNCF(gc.geosChem, geosChemFormat, varName, gc.start, gc.end, gc.recordDeltaInterval, gc.fileDeltaInterval, readNCFNoHour, gc.msgChan)
+	if gc.noChemHour {
+		return nextDataNCF(gc.geosChem, geosChemFormat, varName, gc.start, gc.end, gc.chemRecordDeltaInterval, gc.chemFileDeltaInterval, readNCFNoHour, gc.msgChan)
 	}
-	return nextDataNCF(gc.geosChem, geosChemFormat, varName, gc.start, gc.end, gc.recordDeltaInterval, gc.fileDeltaInterval, readNCF, gc.msgChan)
+	return nextDataNCF(gc.geosChem, geosChemFormat, varName, gc.start, gc.end, gc.chemRecordDeltaInterval, gc.chemFileDeltaInterval, readNCF, gc.msgChan)
 }
 
 func (gc *GEOSChem) readApBp(varName string) NextData {
@@ -359,15 +357,11 @@ func (gc *GEOSChem) readApBp(varName string) NextData {
 	return nextDataNCF(gc.geosChem, geosChemFormat, varName, gc.start, gc.end, gc.recordDelta3h, gc.fileDelta3h, readNCFNoHour, gc.msgChan)
 }
 
-//func (gc *GEOSChem) readChemGroupAlt(varGroup map[string]float64) NextData {
-//	return nextDataGroupAltNCF(gc.geosChem, geosChemFormat, gc.aVOC, gc.ALT(), gc.start, gc.end, gc.recordDelta3h, gc.fileDelta3h, readNCFNoHour, gc.msgChan)
-//}
-
 func (gc *GEOSChem) readChemGroupAlt(varGroup map[string]float64) NextData {
-	if gc.noHour {
-		return nextDataGroupAltNCF(gc.geosChem, geosChemFormat, gc.aVOC, gc.ALT(), gc.start, gc.end, gc.recordDeltaInterval, gc.fileDeltaInterval, readNCFNoHour, gc.msgChan)
+	if gc.noChemHour {
+		return nextDataGroupAltNCF(gc.geosChem, geosChemFormat, gc.aVOC, gc.ALT(), gc.start, gc.end, gc.chemRecordDeltaInterval, gc.chemFileDeltaInterval, readNCFNoHour, gc.msgChan)
 	}
-	return nextDataGroupAltNCF(gc.geosChem, geosChemFormat, gc.aVOC, gc.ALT(), gc.start, gc.end, gc.recordDeltaInterval, gc.fileDeltaInterval, readNCF, gc.msgChan)
+	return nextDataGroupAltNCF(gc.geosChem, geosChemFormat, gc.aVOC, gc.ALT(), gc.start, gc.end, gc.chemRecordDeltaInterval, gc.chemFileDeltaInterval, readNCF, gc.msgChan)
 }
 
 var geosLayerConvert = func(nz int) func(NextData) NextData {

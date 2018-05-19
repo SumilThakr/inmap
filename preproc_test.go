@@ -80,10 +80,10 @@ func TestGEOSChemToInMAP(t *testing.T) {
 		"20130102",
 		"20130104",
 		true,
-		nil,
 		"3h",
 		"3h",
 		true,
+		nil,
 	)
 	if err != nil {
 		t.Fatal(err)
@@ -94,7 +94,6 @@ func TestGEOSChemToInMAP(t *testing.T) {
 	}
 
 	cfg := VarGridConfig{}
-	//	f2, err := os.Open("inmap/testdata/preproc/inmapData_GEOSChem_golden.ncf")
 	f2, err := os.Open("inmap/testdata/preproc/inmapData_GEOSChem_golden.ncf")
 	if err != nil {
 		t.Fatalf("opening golden file: %v", err)
@@ -119,10 +118,10 @@ func BenchmarkGEOSChemToInMAP(b *testing.B) {
 		"20130102",
 		"20130104",
 		true,
-		nil,
 		"3h",
 		"3h",
 		true,
+		nil,
 	)
 	if err != nil {
 		b.Fatal(err)
