@@ -442,26 +442,26 @@ func init() {
 			flagsets:   []*pflag.FlagSet{preprocCmd.Flags()},
 		},
 		{
-			name: "Preproc.GEOSChem.chemFileStr",
+			name: "Preproc.GEOSChem.ChemFileInterval",
 			usage: `
-              Preproc.GEOSChem.chemFileStr is the time interval of each file.
+              Preproc.GEOSChem.ChemFileInterval specifies the time duration represented by each GEOS-Chem output file.
               E.g. "3h" for 3 hours`,
-			defaultVal: "${GOPATH}/src/github.com/spatialmodel/inmap/inmap/testdata/preproc/gc_output.[DATE].nc",
+			defaultVal: "3h",
 			flagsets:   []*pflag.FlagSet{preprocCmd.Flags()},
 		},
 		{
-			name: "Preproc.GEOSChem.chemRecordStr",
+			name: "Preproc.GEOSChem.ChemRecordInterval",
 			usage: `
-              Preproc.GEOSChem.chemRecordStr is the string specifying the time interval between different records.
+              Preproc.GEOSChem.ChemRecordInterval specifies the time duration represented by each GEOS-Chem output record.
               E.g. "3h" for 3 hours`,
-			defaultVal: "${GOPATH}/src/github.com/spatialmodel/inmap/inmap/testdata/preproc/gc_output.[DATE].nc",
+			defaultVal: "3h",
 			flagsets:   []*pflag.FlagSet{preprocCmd.Flags()},
 		},
 		{
-			name: "Preproc.GEOSChem.noChemHour",
+			name: "Preproc.GEOSChem.NoChemHourIndex",
 			usage: `
-              If Preproc.GEOSChem.noChemHour is true, the GEOS-Chem output files do not contain a time dimension.`,
-			defaultVal: "${GOPATH}/src/github.com/spatialmodel/inmap/inmap/testdata/preproc/gc_output.[DATE].nc",
+              If Preproc.GEOSChem.NoChemHourIndex is true, the GEOS-Chem output files will be assumed to not contain a time dimension.`,
+			defaultVal: false,
 			flagsets:   []*pflag.FlagSet{preprocCmd.Flags()},
 		},
 		{
@@ -767,9 +767,9 @@ file and saves the result for use in future InMAP simulations.`,
 			Cfg.GetFloat64("Preproc.CtmGridDx"),
 			Cfg.GetFloat64("Preproc.CtmGridDy"),
 			Cfg.GetBool("Preproc.GEOSChem.Dash"),
-			Cfg.GetString("Preproc.GEOSChem.recordDeltaStr"),
-			Cfg.GetString("Preproc.GEOSChem.fileDeltaStr"),
-			Cfg.GetBool("Preproc.GEOSChem.noChemHour"),
+			Cfg.GetString("Preproc.GEOSChem.ChemRecordInterval"),
+			Cfg.GetString("Preproc.GEOSChem.ChemFileInterval"),
+			Cfg.GetBool("Preproc.GEOSChem.NoChemHourIndex"),
 		)
 	},
 	DisableAutoGenTag: true,
