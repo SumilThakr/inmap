@@ -80,9 +80,6 @@ func TestGEOSChemToInMAP(t *testing.T) {
 		"20130102",
 		"20130104",
 		true,
-		"3h",
-		"3h",
-		true,
 		nil,
 	)
 	if err != nil {
@@ -117,9 +114,6 @@ func BenchmarkGEOSChemToInMAP(b *testing.B) {
 		"inmap/testdata/preproc/vegtype.global.txt",
 		"20130102",
 		"20130104",
-		true,
-		"3h",
-		"3h",
 		true,
 		nil,
 	)
