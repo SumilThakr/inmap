@@ -336,6 +336,13 @@ func (sr *Reader) Concentrations(emis ...*inmap.EmisRecord) (*Concentrations, er
 // InMAP data structure to the specified values. This is not
 // concurrency-safe.
 func (sr *Reader) SetConcentrations(c *Concentrations) error {
+	conversion := map[string]float64{
+		"pnh4":        simplechem.NtoNH4,
+		"pso4":        simplechem.StoSO4,
+		"pno3":        simplechem.NtoNO3,
+		"primarypm25": 1,
+		"soa":         1,
+	}
 	m := simplechem.Mechanism{}
 	nSpec := m.Len()
 	speciesIndex := make(map[string]int)
@@ -348,6 +355,7 @@ func (sr *Reader) SetConcentrations(c *Concentrations) error {
 	}
 	cVal := reflect.ValueOf(c).Elem()
 	cType := cVal.Type()
+	cells := sr.d.Cells()
 	for i := 0; i < cVal.NumField(); i++ {
 		fieldT := cType.Field(i)
 		fieldV := cVal.Field(i)
@@ -355,11 +363,16 @@ func (sr *Reader) SetConcentrations(c *Concentrations) error {
 		if !ok {
 			return fmt.Errorf("sr: this mechanism does not contain case-insensitive species `%s`", fieldT.Name)
 		}
-		cells := sr.d.Cells()
+		conv, ok := conversion[strings.ToLower(fieldT.Name)]
+		if !ok {
+			panic("missing conversion for " + strings.ToLower(fieldT.Name))
+		}
 		for i := 0; i < fieldV.Len(); i++ {
 			c := cells[i]
-			c.Cf = make([]float64, nSpec)
-			c.Cf[iPol] = fieldV.Index(i).Float()
+			if len(c.Cf) != nSpec {
+				c.Cf = make([]float64, nSpec)
+			}
+			c.Cf[iPol] = fieldV.Index(i).Float() / conv
 		}
 	}
 	return nil
