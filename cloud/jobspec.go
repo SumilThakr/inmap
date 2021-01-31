@@ -90,25 +90,48 @@ func JobSpec(root *cobra.Command, config *viper.Viper, name string, cmdArgs, inp
 		argVal := val
 		if _, ok := inputFields[f.Name]; ok {
 			argVal = ""
-			vals := stringsFromInterface(config.Get(f.Name))
-			for i, val := range vals {
-				val, visitErr = localFileToRunInput(val, js)
-				if visitErr != nil {
-					return
+			arg := config.Get(f.Name)
+			vals := stringsFromInterface(arg)
+			switch v := vals.(type) {
+			case []string:
+				for i, val := range v {
+					if val == "no_default" {
+						continue
+					}
+					val, visitErr = localFileToRunInput(val, js)
+					if visitErr != nil {
+						return
+					}
+					if i == 0 {
+						argVal += val
+					} else {
+						argVal += "," + val
+					}
 				}
-				if i == 0 {
-					argVal += val
-				} else {
-					argVal += "," + val
+			case map[string][]string:
+				for k, vals := range v {
+					for i, val := range vals {
+						v[k][i], visitErr = localFileToRunInput(val, js)
+						if visitErr != nil {
+							return
+						}
+					}
 				}
+				b := bytes.NewBuffer(nil)
+				if err := json.NewEncoder(b).Encode(v); err != nil {
+					panic(err)
+				}
+				argVal = strings.TrimSpace(b.String())
+			default:
+				panic(fmt.Errorf("invalid type %T", vals))
 			}
 		}
-		if argVal != "false" {
-			if argVal == "true" {
-				js.Args = append(js.Args, fmt.Sprintf("--%s", f.Name), "true")
-			} else {
-				js.Args = append(js.Args, fmt.Sprintf("--%s", f.Name), argVal)
-			}
+		switch {
+		case argVal == "false":
+		case argVal == "true":
+			js.Args = append(js.Args, fmt.Sprintf("--%s", f.Name), "true")
+		default:
+			js.Args = append(js.Args, fmt.Sprintf("--%s", f.Name), argVal)
 		}
 	})
 	if visitErr != nil {
@@ -117,17 +140,36 @@ func JobSpec(root *cobra.Command, config *viper.Viper, name string, cmdArgs, inp
 	return js, nil
 }
 
-func stringsFromInterface(val interface{}) []string {
+// stringsFromInterface takes an interface{} and returns either a []string or a map[string][]string
+func stringsFromInterface(val interface{}) interface{} {
 	switch t := val.(type) {
 	case string:
-		return []string{val.(string)}
+		if t == "{}" || t == "{}\n" {
+			return []string{}
+		}
+		// Try to decode as JSON.
+		d := json.NewDecoder(bytes.NewBuffer([]byte(t)))
+		var v interface{}
+		if err := d.Decode(&v); err != nil {
+			return []string{t} // If decoding JSON doesn't work, return string.
+		}
+		return stringsFromInterface(v)
 	case []string:
-		return val.([]string)
+		return t
 	case []interface{}:
-		valSlice := val.([]interface{})
-		s := make([]string, len(valSlice))
-		for i, v := range valSlice {
+		s := make([]string, len(t))
+		for i, v := range t {
 			s[i] = fmt.Sprint(v)
+		}
+		return s
+	case map[string][]string:
+		return t
+	case map[string]interface{}:
+		s := make(map[string][]string)
+		for k, vs := range t {
+			for _, v := range vs.([]interface{}) {
+				s[k] = append(s[k], v.(string))
+			}
 		}
 		return s
 	default:

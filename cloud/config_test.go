@@ -29,6 +29,9 @@ import (
 
 func TestRunInputFromViper(t *testing.T) {
 	cfg := inmaputil.InitializeConfig()
+	cfg.Viper.Set("aep.InventoryConfig.COARDSFiles", map[string][]string{
+		"xxx": {"../emissions/aep/testdata/emis_coards_hawaii.nc", "../emissions/aep/testdata/emis_coards_hawaii.nc"},
+		"yyy": {"../emissions/aep/testdata/emis_coards_hawaii.nc"}})
 	js, err := cloud.JobSpec(cfg.Root, cfg.Viper, "test_job", []string{"run", "steady"}, cfg.InputFiles(), 1)
 	if err != nil {
 		t.Fatal(err)
@@ -42,11 +45,18 @@ func TestRunInputFromViper(t *testing.T) {
 	}
 
 	wantArgs := map[string]string{
+		"--EmissionMaskGeoJSON":               "",
+		"--aep.GridRef":                       "",
+		"--aep.InventoryConfig.NEIFiles":      "",
+		"--aep.SpatialConfig.SpatialCache":    "",
+		"--aep.SpatialConfig.SrgDataCache":    "",
+		"--aep.SrgSpecSMOKE":                  "",
+		"--aep.SrgSpecOSM":                    "",
 		"--VarGrid.MortalityRateFile":         "764874ad5081665459c67d40607f68df6fc689aa695b4822e012aef84cba5394.shp",
 		"--VarGrid.VariableGridDx":            "4000",
 		"--NumIterations":                     "0",
 		"--VarGrid.CensusPopColumns":          "TotalPop,WhiteNoLat,Black,Native,Asian,Latino",
-		"--VariableGridData":                  "aa4dd05ac464a1f532480e5f3aae5a7cf20fb97f1250de88e5b5b192f6e752e7.gob",
+		"--VariableGridData":                  "26b310adcf36530acdb518bd74b61355b2a2e7825c20a07f3631db412c655881.gob",
 		"--OutputVariables":                   "{\"TotalPM25\":\"PrimaryPM25 + pNH4 + pSO4 + pNO3 + SOA\",\"TotalPopD\":\"(exp(log(1.078)/10 * TotalPM25) - 1) * TotalPop * AllCause / 100000\"}\n",
 		"--OutputFile":                        "inmap_output.shp",
 		"--VarGrid.PopThreshold":              "40000",
@@ -66,19 +76,14 @@ func TestRunInputFromViper(t *testing.T) {
 		"--VarGrid.VariableGridDy":            "4000",
 		"--EmissionUnits":                     "tons/year",
 		"--LogFile":                           "",
-		"--aep.GridRef":                       "no_default",
-		"--aep.InventoryConfig.COARDSFiles":   "{}\n",
+		"--aep.InventoryConfig.COARDSFiles":   "{\"xxx\":[\"ffe280d818c1549074d0e15cfb74377b891287d7f81a4ad9038d0f65b12f6642.nc\",\"ffe280d818c1549074d0e15cfb74377b891287d7f81a4ad9038d0f65b12f6642.nc\"],\"yyy\":[\"ffe280d818c1549074d0e15cfb74377b891287d7f81a4ad9038d0f65b12f6642.nc\"]}",
 		"--aep.InventoryConfig.COARDSYear":    "0",
 		"--aep.InventoryConfig.InputUnits":    "no_default",
-		"--aep.InventoryConfig.NEIFiles":      "{}\n",
 		"--aep.SCCExactMatch":                 "true",
 		"--aep.SpatialConfig.GridName":        "inmap",
 		"--aep.SpatialConfig.InputSR":         "+proj=longlat",
 		"--aep.SpatialConfig.MaxCacheEntries": "10",
-		"--aep.SpatialConfig.SpatialCache":    "",
 		"--aep.SrgShapefileDirectory":         "no_default",
-		"--aep.SrgSpec":                       "no_default",
-		"--aep.SrgSpecType":                   "no_default",
 	}
 	if len(js.Args) != len(wantArgs)*2 {
 		t.Errorf("wrong number of arguments: %d != %d", len(js.Args)/2, len(wantArgs))
@@ -107,8 +112,9 @@ func TestRunInputFromViper(t *testing.T) {
 		"764874ad5081665459c67d40607f68df6fc689aa695b4822e012aef84cba5394.shx": 108,
 		"764874ad5081665459c67d40607f68df6fc689aa695b4822e012aef84cba5394.dbf": 341,
 		"764874ad5081665459c67d40607f68df6fc689aa695b4822e012aef84cba5394.prj": 432,
-		"aa4dd05ac464a1f532480e5f3aae5a7cf20fb97f1250de88e5b5b192f6e752e7.gob": 23985,
+		"26b310adcf36530acdb518bd74b61355b2a2e7825c20a07f3631db412c655881.gob": 21276,
 		"434bf26e3fda1ef9cef7e1fa6cc6b5174d11a22b19cbe10d256adc83b2a97d44.ncf": 14284,
+		"ffe280d818c1549074d0e15cfb74377b891287d7f81a4ad9038d0f65b12f6642.nc":  3484,
 	}
 	if len(js.FileData) != len(wantFiles) {
 		t.Errorf("incorrect number of files: %d != %d", len(js.FileData), len(wantFiles))
@@ -151,6 +157,7 @@ func TestSRPredictInputFromViper(t *testing.T) {
 	}
 
 	wantArgs := map[string]string{
+		"--EmissionMaskGeoJSON": "",
 		"--EmissionUnits":       "tons/year",
 		"--EmissionsShapefiles": "258bbcefe8c0073d6f323351463be9e9685e74bb92e367ca769b9536ed247213.shp",
 		"--OutputFile":          "inmap_output.shp",

@@ -23,11 +23,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/ctessum/geom"
+	"github.com/ctessum/geom/encoding/geojson"
 	"github.com/ctessum/geom/proj"
 	"github.com/lnashier/viper"
 	"github.com/spatialmodel/inmap"
@@ -191,14 +194,33 @@ func VarGridConfig(cfg *viper.Viper) (*inmap.VarGridConfig, error) {
 
 // aeputilConfig unmarshals an aeputil inventory and spatial configuration.
 func aeputilConfig(cfg *viper.Viper) (*aeputil.InventoryConfig, *aeputil.SpatialConfig, error) {
+	outChan := outChan()
+
 	neiFiles, err := getStringMapStringSlice("aep.InventoryConfig.NEIFiles", cfg)
 	if err != nil {
 		return nil, nil, fmt.Errorf("inmaputil: parsing config variable aep.InventoryConfig.NEIFiles: %v", err)
+	}
+	for k, vs := range neiFiles {
+		for i, v := range vs {
+			neiFiles[k][i] = maybeDownload(context.TODO(), os.ExpandEnv(v), outChan)
+		}
 	}
 
 	coardsFiles, err := getStringMapStringSlice("aep.InventoryConfig.COARDSFiles", cfg)
 	if err != nil {
 		return nil, nil, fmt.Errorf("inmaputil: parsing config variable aep.InventoryConfig.COARDSFiles: %v", err)
+	}
+	for k, vs := range coardsFiles {
+		for i, v := range vs {
+			coardsFiles[k][i] = maybeDownload(context.TODO(), os.ExpandEnv(v), outChan)
+		}
+	}
+
+	srgSpecSMOKE := maybeDownload(context.TODO(), os.ExpandEnv(cfg.GetString("aep.SrgSpecSMOKE")), outChan)
+	srgSpecOSM := maybeDownload(context.TODO(), os.ExpandEnv(cfg.GetString("aep.SrgSpecOSM")), outChan)
+	var gridRef []string
+	for _, g := range cfg.GetStringSlice("aep.GridRef") {
+		gridRef = append(gridRef, maybeDownload(context.TODO(), g, outChan))
 	}
 
 	i := &aeputil.InventoryConfig{
@@ -206,10 +228,10 @@ func aeputilConfig(cfg *viper.Viper) (*aeputil.InventoryConfig, *aeputil.Spatial
 		COARDSFiles:           coardsFiles,
 		COARDSYear:            cfg.GetInt("aep.InventoryConfig.COARDSYear"),
 		InputUnits:            cfg.GetString("aep.InventoryConfig.InputUnits"),
-		SrgSpec:               os.ExpandEnv(cfg.GetString("aep.SrgSpec")),
-		SrgSpecType:           cfg.GetString("aep.SrgSpecType"),
+		SrgSpecSMOKE:          srgSpecSMOKE,
+		SrgSpecOSM:            srgSpecOSM,
 		SrgShapefileDirectory: cfg.GetString("aep.SrgShapefileDirectory"),
-		GridRef:               cfg.GetStringSlice("aep.GridRef"),
+		GridRef:               gridRef,
 		SCCExactMatch:         cfg.GetBool("aep.SCCExactMatch"),
 	}
 	i.PolsToKeep = aep.Speciation{
@@ -221,14 +243,15 @@ func aeputilConfig(cfg *viper.Viper) (*aeputil.InventoryConfig, *aeputil.Spatial
 	}
 
 	s := &aeputil.SpatialConfig{
-		SrgSpec:               os.ExpandEnv(cfg.GetString("aep.SrgSpec")),
-		SrgSpecType:           cfg.GetString("aep.SrgSpecType"),
+		SrgSpecSMOKE:          srgSpecSMOKE,
+		SrgSpecOSM:            srgSpecOSM,
 		SrgShapefileDirectory: cfg.GetString("aep.SrgShapefileDirectory"),
 		SCCExactMatch:         cfg.GetBool("aep.SCCExactMatch"),
-		GridRef:               cfg.GetStringSlice("aep.GridRef"),
+		GridRef:               gridRef,
 		OutputSR:              os.ExpandEnv(cfg.GetString("VarGrid.GridProj")),
 		InputSR:               cfg.GetString("aep.SpatialConfig.InputSR"),
 		SpatialCache:          cfg.GetString("aep.SpatialConfig.SpatialCache"),
+		SrgDataCache:          cfg.GetString("aep.SpatialConfig.SrgDataCache"),
 		MaxCacheEntries:       cfg.GetInt("aep.SpatialConfig.MaxCacheEntries"),
 		GridName:              cfg.GetString("aep.SpatialConfig.GridName"),
 	}
@@ -285,6 +308,9 @@ func getStringMapStringSlice(varName string, cfg *viper.Viper) (map[string][]str
 	case map[string]interface{}:
 		return cast.ToStringMapStringSliceE(i)
 	case string:
+		if i == "" {
+			return make(map[string][]string), nil
+		}
 		b := bytes.NewBuffer(([]byte)(i.(string)))
 		d := json.NewDecoder(b)
 		o := make(map[string][]string)
@@ -295,4 +321,35 @@ func getStringMapStringSlice(varName string, cfg *viper.Viper) (map[string][]str
 	default:
 		panic(fmt.Errorf("invalid type for getStringMapString variable %s: %#v", varName, i))
 	}
+}
+
+// parseMask returns a mask polygon represented by the
+// given GeoJSON file.
+func parseMask(maskGeoJSONFile string) (geom.Polygon, error) {
+	var mask geom.Polygon
+	if m := maskGeoJSONFile; m != "" {
+		f, err := os.Open(os.ExpandEnv(m))
+		if err != nil {
+			return nil, fmt.Errorf("opening emissions mask file: %w", err)
+		}
+		b, err := ioutil.ReadAll(f)
+		if err != nil {
+			return nil, fmt.Errorf("reading emissions mask file: %w", err)
+		}
+		j, err := geojson.Decode(b)
+		if err != nil {
+			return nil, fmt.Errorf("decoding EmissionMaskGEOJSON: %w", err)
+		}
+		switch msk := j.(type) {
+		case geom.Polygon:
+			mask = msk
+		case geom.MultiPolygon:
+			for _, p := range msk {
+				mask = append(mask, p...)
+			}
+		default:
+			return nil, fmt.Errorf("invalid emission mask geometry type %T", j)
+		}
+	}
+	return mask, nil
 }

@@ -194,6 +194,7 @@ func TestCreateSurrogates(t *testing.T) {
 	// surrogates that should be nil based on manual inspection.
 	nilSrgs := map[string]map[string]bool{
 		"200": map[string]bool{"09001": true, "36103": true},
+		"500": map[string]bool{"09001": true},
 	}
 
 	for _, code := range []string{"100", "137", "140", "500", "200"} {
@@ -209,15 +210,10 @@ func TestCreateSurrogates(t *testing.T) {
 			for fips, covered := range coveredByGrid {
 				t.Run(fips, func(t *testing.T) {
 					sg := &srgGrid{srg: srgSpec, gridData: grid, loc: inputShapes[fips], sp: sp}
-					srgI, err := sg.Run(context.Background())
-					if err != nil {
+					srg := new(GriddedSrgData)
+					if err := sg.Run(context.Background(), nil, (*griddedSrgDataHolder)(srg)); err != nil {
 						t.Fatalf("creating surrogate %s, FIPS %s: %v", code, fips, err)
 					}
-					if srgI == nil {
-						t.Fatalf("county %s is not in surrogate %s", fips, code)
-					}
-
-					srg := srgI.(*GriddedSrgData)
 
 					if srg.CoveredByGrid != covered {
 						t.Errorf("county %s should %v be covered by the grid but it is %v",
@@ -289,6 +285,7 @@ func TestSpatializeRecord(t *testing.T) {
 		t.Fatal(err)
 	}
 	sp := NewSpatialProcessor(srgSpecs, []*GridDef{grid}, gridRef, inputSR, true)
+	sp.SrgCellRatio = 1000
 	//sp.DiskCachePath = "testcache"
 
 	sourceData := SourceData{

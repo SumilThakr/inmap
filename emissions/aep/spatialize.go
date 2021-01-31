@@ -29,16 +29,16 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/ctessum/geom/proj"
-	"github.com/ctessum/requestcache/v2"
+	"github.com/ctessum/requestcache/v4"
 	"github.com/ctessum/sparse"
 	"github.com/ctessum/unit"
 
+	// Register sqlite drivers
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -82,6 +82,14 @@ type SpatialProcessor struct {
 	// memory use. The value should be in the units of the output grid
 	// (e.g., meters or degrees).
 	SimplifyTolerance float64
+
+	// SrgCellRatio is the number of surrogate shapes to process per
+	// grid cell for each input shape. Larger numbers require
+	// longer to compute. If srgCellRatio > 1, all surrogate
+	// shapes will be processed.
+	SrgCellRatio int
+
+	MsgChan chan string
 }
 
 // NewSpatialProcessor creates a new spatial processor.
@@ -98,30 +106,21 @@ func NewSpatialProcessor(srgSpecs *SrgSpecs, grids []*GridDef, gridRef *GridRef,
 	return sp
 }
 
-func init() {
-	gob.Register(GriddedSrgData{})
-}
+type griddedSrgDataHolder GriddedSrgData
 
-// unmarshalGriddedSrgData unmarshals an interface from a byte array and fulfills
-// the requirements for the Disk cache unmarshalFunc input.
-func unmarshalGriddedSrgData(b []byte) (interface{}, error) {
+// UnmarshalBinary unmarshals the receiver from a byte array.
+func (data *griddedSrgDataHolder) UnmarshalBinary(b []byte) error {
 	r := bytes.NewBuffer(b)
 	d := gob.NewDecoder(r)
-	var data GriddedSrgData
-	if err := d.Decode(&data); err != nil {
-		return nil, err
-	}
-	return &data, nil
+	dd := (*GriddedSrgData)(data)
+	return d.Decode(dd)
 }
 
-// marshalGriddedSrgData marshals an interface to a byte array and fulfills
-// the requirements for the Disk cache marshalFunc input.
-func marshalGriddedSrgData(data interface{}) ([]byte, error) {
+// MarshalBinary marshals the data to a byte array.
+func (data *griddedSrgDataHolder) MarshalBinary() ([]byte, error) {
 	w := bytes.NewBuffer(nil)
 	e := gob.NewEncoder(w)
-	d := *data.(*interface{})
-	dd := d.(*GriddedSrgData)
-	if err := e.Encode(dd); err != nil {
+	if err := e.Encode((*GriddedSrgData)(data)); err != nil {
 		return nil, err
 	}
 	return w.Bytes(), nil
@@ -129,40 +128,42 @@ func marshalGriddedSrgData(data interface{}) ([]byte, error) {
 
 func (sp *SpatialProcessor) load() error {
 	var err error
-	sp.cache, err = newCache(sp.DiskCachePath, sp.MemCacheSize, marshalGriddedSrgData, unmarshalGriddedSrgData)
+	sp.cache, err = newCache(sp.DiskCachePath, sp.MemCacheSize)
 	return err
 }
 
-func newCache(diskCachePath string, memCacheSize int, marshalFunc func(interface{}) ([]byte, error), unmarshalFunc func([]byte) (interface{}, error)) (*requestcache.Cache, error) {
+func newCache(diskCachePath string, memCacheSize int) (*requestcache.Cache, error) {
 	dedup := requestcache.Deduplicate()
-	nprocs := runtime.GOMAXPROCS(-1)
 	mc := requestcache.Memory(memCacheSize)
 	if diskCachePath == "" {
-		return requestcache.NewCache(nprocs, dedup, mc), nil
+		return requestcache.NewCache(dedup, mc), nil
 	} else {
 		if strings.HasPrefix(diskCachePath, "gs://") {
 			loc, err := url.Parse(diskCachePath)
 			if err != nil {
 				return nil, err
 			}
-			cf, err := requestcache.GoogleCloudStorage(context.TODO(), loc.Host, strings.TrimLeft(loc.Path, "/"), marshalFunc, unmarshalFunc)
+			cf, err := requestcache.GoogleCloudStorage(context.TODO(), loc.Host, strings.TrimLeft(loc.Path, "/"))
 			if err != nil {
 				return nil, err
 			}
-			return requestcache.NewCache(nprocs, dedup, mc, cf), nil
+			return requestcache.NewCache(dedup, mc, cf), nil
 		} else if filepath.Ext(diskCachePath) == ".sqlite3" {
 			db, err := sql.Open("sqlite3", diskCachePath)
 			if err != nil {
 				return nil, err
 			}
-			cf, err := requestcache.SQL(context.Background(), db, marshalFunc, unmarshalFunc)
+			cf, err := requestcache.SQL(context.Background(), db)
 			if err != nil {
 				return nil, err
 			}
-			return requestcache.NewCache(nprocs, dedup, mc, cf), nil
+			return requestcache.NewCache(dedup, mc, cf), nil
 		} else {
-			return requestcache.NewCache(nprocs, dedup, mc,
-				requestcache.Disk(diskCachePath, marshalFunc, unmarshalFunc)), nil
+			if err := os.MkdirAll(diskCachePath, os.ModePerm); err != nil {
+				return nil, err
+			}
+			return requestcache.NewCache(dedup, mc,
+				requestcache.Disk(diskCachePath)), nil
 		}
 	}
 }
@@ -187,6 +188,7 @@ type RecordGridded interface {
 		emis map[Pollutant]*sparse.SparseArray, units map[Pollutant]unit.Dimensions, err error)
 }
 
+// GridRecord returns a record that can allocate the emissions to a grid.
 func (sp *SpatialProcessor) GridRecord(r Record) RecordGridded {
 	return &recordGridded{
 		Record: r,
@@ -285,13 +287,12 @@ func (sp *SpatialProcessor) Surrogate(srgSpec SrgSpec, grid *GridDef, loc *Locat
 		return nil, false, err
 	}
 
-	s := &srgGrid{srg: srgSpec, gridData: grid, loc: loc, sp: sp}
-	req := sp.cache.NewRequest(context.Background(), s)
-	resultI, err := req.Result()
-	if err != nil {
+	s := &srgGrid{srg: srgSpec, gridData: grid, loc: loc, sp: sp, msgChan: sp.MsgChan}
+	req := sp.cache.NewRequestRecursive(context.Background(), s)
+	result := new(GriddedSrgData)
+	if err := req.Result((*griddedSrgDataHolder)(result)); err != nil {
 		return nil, false, err
 	}
-	result := resultI.(*GriddedSrgData)
 	srg, coveredByGrid := result.ToGrid()
 	if srg != nil {
 		return srg, coveredByGrid, nil
@@ -302,13 +303,12 @@ func (sp *SpatialProcessor) Surrogate(srgSpec SrgSpec, grid *GridDef, loc *Locat
 		if err != nil {
 			return nil, false, err
 		}
-		s := &srgGrid{srg: newSrgSpec, gridData: grid, loc: loc, sp: sp}
-		req := sp.cache.NewRequest(context.Background(), s)
-		resultI, err := req.Result()
-		if err != nil {
+		s := &srgGrid{srg: newSrgSpec, gridData: grid, loc: loc, sp: sp, msgChan: sp.MsgChan}
+		result := new(GriddedSrgData)
+		req := sp.cache.NewRequestRecursive(context.Background(), s)
+		if err := req.Result((*griddedSrgDataHolder)(result)); err != nil {
 			return nil, false, err
 		}
-		result := resultI.(*GriddedSrgData)
 		srg, coveredByGrid := result.ToGrid()
 		if srg != nil {
 			return srg, coveredByGrid, nil
