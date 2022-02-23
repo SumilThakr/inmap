@@ -19,6 +19,8 @@ def _download(url, file_name):
     with open(file_name, "wb") as file:
         # get request
         response = requests.get(url)
+        if not response.ok:
+            raise Exception("Downloading file from {} failed".format(url))
         # write to file
         file.write(response.content)
 
@@ -70,44 +72,50 @@ def run_sr(emis, model, output_variables, emis_units="tons/year"):
     job_name = "run_aqm_%s"%start
     emis_file = os.path.join(_tmpdir.name, "%s.shp"%(job_name))
     emis.to_file(emis_file)
+
+    arch = platform.machine()
+
+    if arch == "x86_64": arch = "amd64"
     
-    version = "1.7.2"
+    version = "1.9.0"
     
     if _inmap_exe == None:
         ost = platform.system()
         print("Downloading InMAP executable for %s               "%ost, end='\r')
         if ost == "Windows":
             _inmap_exe = os.path.join(_tmpdir.name, "inmap_%s.exe"%version)
-            _download("https://github.com/spatialmodel/inmap/releases/download/v%s/inmap%swindows-amd64.exe"%(version, version), _inmap_exe)
+            _download("https://github.com/spatialmodel/inmap/releases/download/v%s/inmap-v%s-windows-%s.exe"%(version, version, arch), _inmap_exe)
         elif ost == "Darwin":
             _inmap_exe = os.path.join(_tmpdir.name, "inmap_%s"%version)
-            _download("https://github.com/spatialmodel/inmap/releases/download/v%s/inmap%sdarwin-amd64"%(version, version), _inmap_exe)
+            _download("https://github.com/spatialmodel/inmap/releases/download/v%s/inmap-v%s-darwin-%s"%(version, version, arch), _inmap_exe)
         elif ost == "Linux":
             _inmap_exe = os.path.join(_tmpdir.name, "inmap_%s"%version)
-            _download("https://github.com/spatialmodel/inmap/releases/download/v%s/inmap%slinux-amd64"%(version, version), _inmap_exe)
+            _download("https://github.com/spatialmodel/inmap/releases/download/v%s/inmap-v%s-linux-%s"%(version, version, arch), _inmap_exe)
         else:
             raise(OSError("invalid operating system %s"%(ost)))
         os.chmod(_inmap_exe, stat.S_IXUSR|stat.S_IRUSR|stat.S_IWUSR)
     
-    try:
-        subprocess.check_output([_inmap_exe, "cloud", "start",
-            "--cmds=srpredict",
-            "--job_name=%s"%job_name,
-            "--memory_gb=2",
-            "--EmissionUnits=%s"%emis_units,
-            "--EmissionsShapefiles=%s"%emis_file,
-            "--OutputVariables=%s"%json.dumps(output_variables),
-            "--SR.OutputFile=%s"%model_path])
-    except subprocess.CalledProcessError as err:
-        print(err.output)
-        return
+    subprocess.check_output([_inmap_exe, "cloud", "start",
+        "--cmds=srpredict",
+        "--version=v%s"%version,
+        "--job_name=%s"%job_name,
+        "--memory_gb=3",
+        "--EmissionUnits=%s"%emis_units,
+        "--EmissionsShapefiles=%s"%emis_file,
+        "--OutputVariables=%s"%json.dumps(output_variables),
+        "--SR.OutputFile=%s"%model_path])
 
     while True:
-        status = subprocess.check_output([_inmap_exe, "cloud", "status", "--job_name=%s"%job_name]).decode("utf-8").strip()
-        print("simulation %s (%.0f seconds)               "%(status, time.time()-start), end='\r')
-        if status == "Complete": break
-        elif status != "Running":
-            raise(ValueError(status))
+        try:
+            status = subprocess.check_output([_inmap_exe, "cloud", "status", "--job_name=%s"%job_name]).decode("utf-8").strip()
+            print("simulation %s (%.0f seconds)               "%(status, time.time()-start), end='\r')
+            if status == "Complete":
+                break
+            elif status != "Running":
+                raise ValueError(status)
+        except subprocess.CalledProcessError as err:
+            # ignore transient errors when checking status
+            print(err.output)
         time.sleep(5)
 
     subprocess.check_call([_inmap_exe, "cloud", "output", "--job_name=%s"%job_name])

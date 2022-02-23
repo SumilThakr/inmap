@@ -19,6 +19,7 @@ along with InMAP.  If not, see <http://www.gnu.org/licenses/>.
 package aeputil
 
 import (
+	"context"
 	"io"
 	"os"
 	"testing"
@@ -28,6 +29,7 @@ import (
 	"github.com/ctessum/geom/proj"
 	"github.com/ctessum/unit"
 	"github.com/spatialmodel/inmap/emissions/aep"
+	"github.com/spatialmodel/inmap/internal/postgis"
 )
 
 func TestSpatial(t *testing.T) {
@@ -64,19 +66,19 @@ func TestSpatial(t *testing.T) {
 	}
 
 	wantEmis := map[aep.Pollutant]float64{
-		aep.Pollutant{Name: "NOX"}:   1.9694509976996027e+07 + 3329.29929452133,
-		aep.Pollutant{Name: "VOC"}:   650426.9504917137,
-		aep.Pollutant{Name: "PM2_5"}: 1.3251549508572659e+06 + 186.401532717915,
-		aep.Pollutant{Name: "SO2"}:   1.5804381260919824e+07 + 1939.6783010388299,
-		aep.Pollutant{Name: "NH3"}:   34.056105917699995,
+		{Name: "NOX"}:   1.9694509976996027e+07 + 3329.29929452133,
+		{Name: "VOC"}:   650426.9504917137,
+		{Name: "PM2_5"}: 1.3251549508572659e+06 + 186.401532717915,
+		{Name: "SO2"}:   1.5804381260919824e+07 + 1939.6783010388299,
+		{Name: "NH3"}:   34.056105917699995,
 	}
 
 	wantUnits := map[aep.Pollutant]unit.Dimensions{
-		aep.Pollutant{Name: "PM2_5"}: unit.Dimensions{4: 1},
-		aep.Pollutant{Name: "NH3"}:   unit.Dimensions{4: 1},
-		aep.Pollutant{Name: "SO2"}:   unit.Dimensions{4: 1},
-		aep.Pollutant{Name: "NOX"}:   unit.Dimensions{4: 1},
-		aep.Pollutant{Name: "VOC"}:   unit.Dimensions{4: 1},
+		{Name: "PM2_5"}: {4: 1},
+		{Name: "NH3"}:   {4: 1},
+		{Name: "SO2"}:   {4: 1},
+		{Name: "NOX"}:   {4: 1},
+		{Name: "VOC"}:   {4: 1},
 	}
 	iter := c.Spatial.Iterator(IteratorFromMap(records), 0)
 	for {
@@ -120,6 +122,10 @@ func TestSpatial(t *testing.T) {
 }
 
 func TestSpatial_coards(t *testing.T) {
+	ctx := context.Background()
+	postGISURL, postgresC := postgis.SetupTestDB(ctx, t, "../testdata")
+	defer postgresC.Terminate(ctx)
+
 	type config struct {
 		Inventory InventoryConfig
 		Spatial   SpatialConfig
@@ -141,10 +147,12 @@ func TestSpatial_coards(t *testing.T) {
 		"all": {"../testdata/emis_coards_hawaii.nc"},
 	}
 	c.Inventory.COARDSYear = 2016
+	c.Inventory.PostGISURL = postGISURL
 
 	c.Spatial.SrgSpecOSM = "../testdata/srgspec_osm.json"
 	c.Spatial.GridRef = []string{"testdata/gridref_osm.txt"}
 	c.Spatial.OutputSR = "+proj=longlat"
+	c.Spatial.PostGISURL = postGISURL
 
 	sr, err := proj.Parse(c.Spatial.OutputSR)
 	if err != nil {
@@ -163,19 +171,19 @@ func TestSpatial_coards(t *testing.T) {
 	}
 
 	wantEmis := map[aep.Pollutant]float64{
-		aep.Pollutant{Name: "NOx"}:   1.3984131235786172e+07,
-		aep.Pollutant{Name: "VOC"}:   2.7990005393761573e+06,
-		aep.Pollutant{Name: "PM2_5"}: 5.988116747096776e+06,
-		aep.Pollutant{Name: "SOx"}:   5.494101046635956e+06,
-		aep.Pollutant{Name: "NH3"}:   1.2303264126897848e+06,
+		{Name: "NOx"}:   1.3984131235786172e+07,
+		{Name: "VOC"}:   2.7990005393761573e+06,
+		{Name: "PM2_5"}: 5.988116747096776e+06,
+		{Name: "SOx"}:   5.494101046635956e+06,
+		{Name: "NH3"}:   1.2303264126897848e+06,
 	}
 
 	wantUnits := map[aep.Pollutant]unit.Dimensions{
-		aep.Pollutant{Name: "PM2_5"}: unit.Dimensions{4: 1},
-		aep.Pollutant{Name: "NH3"}:   unit.Dimensions{4: 1},
-		aep.Pollutant{Name: "SOx"}:   unit.Dimensions{4: 1},
-		aep.Pollutant{Name: "NOx"}:   unit.Dimensions{4: 1},
-		aep.Pollutant{Name: "VOC"}:   unit.Dimensions{4: 1},
+		{Name: "PM2_5"}: {4: 1},
+		{Name: "NH3"}:   {4: 1},
+		{Name: "SOx"}:   {4: 1},
+		{Name: "NOx"}:   {4: 1},
+		{Name: "VOC"}:   {4: 1},
 	}
 	iter := c.Spatial.Iterator(IteratorFromMap(records), 0)
 	for {
@@ -263,19 +271,19 @@ func TestSpatial_coards_nosurrogate(t *testing.T) {
 	}
 
 	wantEmis := map[aep.Pollutant]float64{
-		aep.Pollutant{Name: "NOx"}:   758866.7728921714,
-		aep.Pollutant{Name: "VOC"}:   151891.34532749676,
-		aep.Pollutant{Name: "PM2_5"}: 324952.8165140556,
-		aep.Pollutant{Name: "SOx"}:   298144.42248186853,
-		aep.Pollutant{Name: "NH3"}:   66765.23687167828,
+		{Name: "NOx"}:   758866.7728921714,
+		{Name: "VOC"}:   151891.34532749676,
+		{Name: "PM2_5"}: 324952.8165140556,
+		{Name: "SOx"}:   298144.42248186853,
+		{Name: "NH3"}:   66765.23687167828,
 	}
 
 	wantUnits := map[aep.Pollutant]unit.Dimensions{
-		aep.Pollutant{Name: "PM2_5"}: unit.Dimensions{4: 1},
-		aep.Pollutant{Name: "NH3"}:   unit.Dimensions{4: 1},
-		aep.Pollutant{Name: "SOx"}:   unit.Dimensions{4: 1},
-		aep.Pollutant{Name: "NOx"}:   unit.Dimensions{4: 1},
-		aep.Pollutant{Name: "VOC"}:   unit.Dimensions{4: 1},
+		{Name: "PM2_5"}: {4: 1},
+		{Name: "NH3"}:   {4: 1},
+		{Name: "SOx"}:   {4: 1},
+		{Name: "NOx"}:   {4: 1},
+		{Name: "VOC"}:   {4: 1},
 	}
 	iter := c.Spatial.Iterator(IteratorFromMap(records), 0)
 	for {

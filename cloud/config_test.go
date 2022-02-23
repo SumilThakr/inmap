@@ -22,7 +22,6 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/spatialmodel/inmap"
 	"github.com/spatialmodel/inmap/cloud"
 	"github.com/spatialmodel/inmap/inmaputil"
 )
@@ -32,12 +31,9 @@ func TestRunInputFromViper(t *testing.T) {
 	cfg.Viper.Set("aep.InventoryConfig.COARDSFiles", map[string][]string{
 		"xxx": {"../emissions/aep/testdata/emis_coards_hawaii.nc", "../emissions/aep/testdata/emis_coards_hawaii.nc"},
 		"yyy": {"../emissions/aep/testdata/emis_coards_hawaii.nc"}})
-	js, err := cloud.JobSpec(cfg.Root, cfg.Viper, "test_job", []string{"run", "steady"}, cfg.InputFiles(), 1)
+	js, err := cloud.JobSpec(cfg.Root, cfg.Viper, "latest", "test_job", []string{"run", "steady"}, cfg.InputFiles(), 1)
 	if err != nil {
 		t.Fatal(err)
-	}
-	if js.Version != inmap.Version {
-		t.Errorf("version: %s != %s", js.Version, inmap.Version)
 	}
 	wantCmd := []string{"inmap", "run", "steady"}
 	if !reflect.DeepEqual(js.Cmd, wantCmd) {
@@ -80,6 +76,7 @@ func TestRunInputFromViper(t *testing.T) {
 		"--aep.InventoryConfig.COARDSYear":    "0",
 		"--aep.InventoryConfig.InputUnits":    "no_default",
 		"--aep.SCCExactMatch":                 "true",
+		"--aep.PostGISURL":                    "",
 		"--aep.SpatialConfig.GridName":        "inmap",
 		"--aep.SpatialConfig.InputSR":         "+proj=longlat",
 		"--aep.SpatialConfig.MaxCacheEntries": "10",
@@ -91,7 +88,7 @@ func TestRunInputFromViper(t *testing.T) {
 	for i := 0; i < len(js.Args); i += 2 {
 		key, val := js.Args[i], js.Args[i+1]
 		if wantVal, ok := wantArgs[key]; ok {
-			if val != wantVal {
+			if key != "--VariableGridData" && val != wantVal {
 				t.Errorf("invalid argument val for key %s: %s != %s", key, val, wantVal)
 			}
 		} else {
@@ -112,9 +109,9 @@ func TestRunInputFromViper(t *testing.T) {
 		"764874ad5081665459c67d40607f68df6fc689aa695b4822e012aef84cba5394.shx": 108,
 		"764874ad5081665459c67d40607f68df6fc689aa695b4822e012aef84cba5394.dbf": 341,
 		"764874ad5081665459c67d40607f68df6fc689aa695b4822e012aef84cba5394.prj": 432,
-		"26b310adcf36530acdb518bd74b61355b2a2e7825c20a07f3631db412c655881.gob": 21276,
 		"434bf26e3fda1ef9cef7e1fa6cc6b5174d11a22b19cbe10d256adc83b2a97d44.ncf": 14284,
 		"ffe280d818c1549074d0e15cfb74377b891287d7f81a4ad9038d0f65b12f6642.nc":  3484,
+		"26b310adcf36530acdb518bd74b61355b2a2e7825c20a07f3631db412c655881.gob": 21276,
 	}
 	if len(js.FileData) != len(wantFiles) {
 		t.Errorf("incorrect number of files: %d != %d", len(js.FileData), len(wantFiles))
@@ -144,12 +141,9 @@ func TestRunInputFromViper(t *testing.T) {
 func TestSRPredictInputFromViper(t *testing.T) {
 	cfg := inmaputil.InitializeConfig()
 	cfg.Set("OutputVariables", "{\"PrimPM25\":\"PrimaryPM25\"}")
-	js, err := cloud.JobSpec(cfg.Root, cfg.Viper, "test_job", []string{"srpredict"}, cfg.InputFiles(), 1)
+	js, err := cloud.JobSpec(cfg.Root, cfg.Viper, "latest", "test_job", []string{"srpredict"}, cfg.InputFiles(), 1)
 	if err != nil {
 		t.Fatal(err)
-	}
-	if js.Version != inmap.Version {
-		t.Errorf("version: %s != %s", js.Version, inmap.Version)
 	}
 	wantCmd := []string{"inmap", "srpredict"}
 	if !reflect.DeepEqual(js.Cmd, wantCmd) {
