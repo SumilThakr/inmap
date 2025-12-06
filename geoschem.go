@@ -694,7 +694,7 @@ func (gc *GEOSChem) W() NextData {
 			for j := 0; j < omega.Shape[1]; j++ {
 				for i := 0; i < omega.Shape[2]; i++ {
 					dz := -1 * math.Log(P.Get(k+1, j, i)/P.Get(k, j, i)) * rr * T.Get(k, j, i) / g // in meters
-					wVal := omega.Get(k, j, i) / (P.Get(k+1, j, i) - P.Get(k, j, i)) / dz
+					wVal := -omega.Get(k, j, i) * dz / (P.Get(k+1, j, i) - P.Get(k,))
 					w.Set(wVal, k, j, i)
 				}
 			}
@@ -749,7 +749,7 @@ func (gc *GEOSChem) T() NextData { return gc.readI3("T") }
 
 // P helps fulfill the Preprocessor interface by returning pressure [Pa].
 func (gc *GEOSChem) P() NextData {
-	PSFunc := gc.readI3("PS")   // Surface pressure [hPa]
+	PSFunc := gc.readI3("PS")   // Surface pressure [Pa]
 	apFunc := gc.readApBp("Ap") // Hybrid-grid A parameter [hPa]
 	bpFunc := gc.readApBp("Bp") // Hypbrid-grid b parameter [-]
 	return func() (*sparse.DenseArray, error) {
@@ -770,7 +770,7 @@ func (gc *GEOSChem) P() NextData {
 			for j := 0; j < PS.Shape[0]; j++ {
 				for i := 0; i < PS.Shape[1]; i++ {
 					const hPa2Pa = 100.0                                      // Convert hPa to Pa.
-					p.Set((PS.Get(j, i)*bp.Get(k)+ap.Get(k))*hPa2Pa, k, j, i) // Pressure [Pa]
+					p.Set(PS.Get(j, i)*bp.Get(k)+ap.Get(k)*hPa2Pa, k, j, i) // Pressure [Pa]
 				}
 			}
 		}
