@@ -839,22 +839,22 @@ func stabilityMixingChemistry(LayerHeights *sparse.DenseArray, pblhFunc, ustarFu
 							To, p, ρparticle,
 							ρ, iSeasonP, seinfeldLU), 0, j, i)
 					SO2DryDep.AddVal(
-						seinfeld.DryDepGas(z, zo, u, L, To, ρ,
+						seinfeld.DryDepGas(z, zo, u, L, To-273.15, ρ,
 							G, Θsurface,
 							wesely1989.So2Data, iSeasonG,
 							weselyLU, rain, dew, true, false), 0, j, i)
 					NOxDryDep.AddVal(
-						seinfeld.DryDepGas(z, zo, u, L, To, ρ,
+						seinfeld.DryDepGas(z, zo, u, L, To-273.15, ρ,
 							G, Θsurface,
 							wesely1989.No2Data, iSeasonG,
 							weselyLU, rain, dew, false, false), 0, j, i)
 					NH3DryDep.AddVal(
-						seinfeld.DryDepGas(z, zo, u, L, To, ρ,
+						seinfeld.DryDepGas(z, zo, u, L, To-273.15, ρ,
 							G, Θsurface,
 							wesely1989.Nh3Data, iSeasonG,
 							weselyLU, rain, dew, false, false), 0, j, i)
 					VOCDryDep.AddVal(
-						seinfeld.DryDepGas(z, zo, u, L, To, ρ,
+						seinfeld.DryDepGas(z, zo, u, L, To-273.15, ρ,
 							G, Θsurface,
 							wesely1989.OraData, iSeasonG,
 							weselyLU, rain, dew, false, false), 0, j, i)
